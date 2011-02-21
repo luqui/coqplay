@@ -1,0 +1,6 @@
+This is a repository where I've decided to put my random Coq developents rather than
+quitting coqide without saving. I do some interesting stuff... maybe not according
+to a guru, but to me, and I figure I'd like to keep it around.
+
+Someday I want to (help) make a really good theorem search engine, so it would be
+nice to have a bunch of random unsorted theorems around for that project too :-)
