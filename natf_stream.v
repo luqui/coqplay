@@ -1,4 +1,5 @@
-Require Import Setoid.
+(* Proof that coinductive streams and functions from nat
+   are isomorphic *)
 
 Section natf.
 
