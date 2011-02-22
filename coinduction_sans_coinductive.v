@@ -12,14 +12,6 @@
   can do everything we could using coq's coinductive using
   this.  And I don't think we can prove that from within 
   coq, because its idea of coinductive is not first-class.
-
-  To prove equivalence of stream below to coq's coinductive
-  stream, it appears we need some sort of fixpoint lemma,
-  so that we can see the recursion within unfold (which
-  is a non-recursive definition here, so it may be
-  nontrivial).  It's likely that this lemma is needed
-  to do other interesting stuff with this development as
-  well.
 *)
 
 Set Implicit Arguments.
@@ -68,6 +60,51 @@ Fixpoint approx (s : stream) (n:nat) : list A :=
   | S n' => let (x,s') := project s in
              x :: approx s' n'
   end.
+
+
+(* Coq Coinductive stream *)
+CoInductive stream' :=
+| cons : A -> stream' -> stream'.
+
+(* and it's bullshit unfolding lemma *)
+Definition frob_stream' s := 
+  match s with cons x xs => cons x xs end.
+
+Lemma frob_stream'_defn : forall s, s = frob_stream' s.
+ destruct s ; reflexivity.
+Qed.
+
+(* Equivalence of coq coinductive streams to 
+   final coalgebra streams *)
+
+Definition stream'_to_stream : stream' -> stream :=
+  unfold _ (fun s =>
+    match s with
+    | cons x s' => (x, s')
+    end).
+
+CoFixpoint stream_to_stream' (s : stream) :=
+  let (x,s') := project s in
+  cons x (stream_to_stream' s').
+
+(* Bisimulation type for proving equivalence of
+   Coq coinductive streams *)
+CoInductive stream'_eq : stream' -> stream' -> Prop :=
+| cons_eq : forall s t x, stream'_eq s t -> stream'_eq (cons x s) (cons x t).
+
+Theorem inverses1 : forall s, stream'_eq s (stream_to_stream' (stream'_to_stream s)).
+ cofix.
+ destruct s.
+ rewrite frob_stream'_defn ; simpl.
+ fold (unfold (prod A)).
+ fold stream'_to_stream.
+ apply cons_eq.
+ auto.
+Qed.
+
+(* Todo: prove the other inverse using a final
+   coalgebra bisimulation type (hope that is expressible)
+*)
 
 End stream.
 
