@@ -1,7 +1,8 @@
 (* Painstaking proof that the standard equivalence relation
    defining rationals is in fact an equivalence relation *)
 
-Require Import Setoid.
+Require Import Equivalence.
+Require Import Omega.
 Require Import Arith.
 
 Record Rat := mkRat { numer : nat ; denom : nat ; nonzero : denom <> 0 }.
@@ -78,3 +79,54 @@ Instance Rat_equiv_Transitive : Transitive Rat_equiv.
  apply (mult_cancel_l (a*f) (e*b) _ d_nonzero) in H0.
  assumption.
 Qed.
+
+
+Instance Rat_equiv_Equivalence : Equivalence Rat_equiv
+ := { Equivalence_Reflexive := Rat_equiv_Reflexive
+    ; Equivalence_Symmetric := Rat_equiv_Symmetric
+    ; Equivalence_Transitive := Rat_equiv_Transitive
+    }.
+
+Notation "A %= B" := (Rat_equiv A B)  (at level 70).
+
+Lemma nonzero_S : forall n, n <> 0 -> exists m, n = S m.
+ destruct n ; intros.
+ destruct H ; trivial.
+ exists n ; trivial.
+Qed.
+
+Program Definition rat_plus (x y : Rat) :=
+  match x with
+  | mkRat a b b_nonzero =>
+    match y with
+    | mkRat c d d_nonzero =>
+      mkRat (a*d + b*c) (b*d) _
+    end
+  end.
+Next Obligation.
+ destruct (nonzero_S _ b_nonzero).
+ destruct (nonzero_S _ d_nonzero).
+ rewrite H.
+ rewrite H0.
+ discriminate.
+Qed.
+
+Theorem rat_plus_comm : forall x y, rat_plus x y %= rat_plus y x.
+ intros.
+ destruct x as [a b b_nonzero].
+ destruct y as [c d d_nonzero].
+ unfold Rat_equiv.
+ simpl.
+ ring.
+Qed.
+
+Theorem rat_plus_assoc : forall x y z, rat_plus (rat_plus x y) z %= rat_plus x (rat_plus y z).
+ intros.
+ destruct x as [a b b_nonzero].
+ destruct y as [c d d_nonzero].
+ destruct z as [e f f_nonzero].
+ unfold Rat_equiv.
+ simpl.
+ ring.
+Qed.
+
