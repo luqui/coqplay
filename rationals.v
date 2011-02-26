@@ -95,6 +95,10 @@ Lemma nonzero_S : forall n, n <> 0 -> exists m, n = S m.
  exists n ; trivial.
 Qed.
 
+
+Program Definition rat_zero : Rat := mkRat 0 1 _.
+Program Definition rat_one : Rat := mkRat 1 1 _.
+
 Program Definition rat_plus (x y : Rat) :=
   match x with
   | mkRat a b b_nonzero =>
@@ -130,3 +134,72 @@ Theorem rat_plus_assoc : forall x y z, rat_plus (rat_plus x y) z %= rat_plus x (
  ring.
 Qed.
 
+Theorem rat_plus_zero : forall x, rat_plus rat_zero x %= x.
+ destruct x ; unfold Rat_equiv ; simpl.
+ repeat rewrite <- plus_n_O ; reflexivity.
+Qed.
+
+Program Definition rat_times (x y : Rat) :=
+  match x with
+  | mkRat a b b_nonzero =>
+    match y with
+    | mkRat c d d_nonzero =>
+      mkRat (a*c) (b*d) _
+    end
+  end.
+Next Obligation.
+ destruct (nonzero_S _ b_nonzero).
+ destruct (nonzero_S _ d_nonzero).
+ rewrite H.
+ rewrite H0.
+ discriminate.
+Qed.
+
+Theorem rat_times_comm : forall x y, rat_times x y %= rat_times y x.
+ intros.
+ destruct x as [a b b_nonzero].
+ destruct y as [c d d_nonzero].
+ unfold Rat_equiv.
+ simpl.
+ ring.
+Qed.
+
+Theorem rat_times_assoc : forall x y z, rat_times (rat_times x y) z %= rat_times x (rat_times y z).
+ intros.
+ destruct x as [a b b_nonzero].
+ destruct y as [c d d_nonzero].
+ destruct z as [e f f_nonzero].
+ unfold Rat_equiv.
+ simpl.
+ ring.
+Qed.
+
+Theorem rat_times_zero : forall x, rat_times rat_zero x %= rat_zero.
+ destruct x ; unfold Rat_equiv ; simpl ; reflexivity.
+Qed.
+
+Theorem rat_times_one : forall x, rat_times rat_one x %= x.
+ destruct x ; unfold Rat_equiv ; simpl.
+ repeat rewrite <- plus_n_O ; reflexivity.
+Qed.
+
+Theorem rat_times_plus_distr : forall x y z, rat_times x (rat_plus y z) %= rat_plus (rat_times x y) (rat_times x z).
+ destruct x ; destruct y ; destruct z ; unfold Rat_equiv ; simpl.
+ ring.
+Qed.
+
+Program Definition rat_inverse : forall x:Rat, ~(x %= rat_zero) -> Rat := fun x nz =>
+  match x with
+  | mkRat a b b_nonzero => mkRat b a _
+  end.
+Next Obligation.
+ unfold Rat_equiv in nz.
+ simpl in nz.
+ rewrite mult_1_r in nz.
+ assumption.
+Qed.
+
+Theorem rat_inverses : forall x (nz : ~(x %= rat_zero)), rat_times x (rat_inverse x nz) %= rat_one.
+ destruct x ; intros ; unfold Rat_equiv ; simpl.
+ ring.
+Qed.
