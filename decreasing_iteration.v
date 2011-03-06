@@ -1,4 +1,5 @@
 Require Import Arith.
+Set Implicit Arguments.
 
 Section iteration.
 
@@ -27,23 +28,20 @@ Lemma measuring_lemma : forall n x, measure x <= S n -> measure (f x) <= n.
  apply (lt_le_trans _ _ _ H0 H).
 Qed.
 
+Ltac smart_destruct H := 
+  let m := fresh "m" in
+  set (m := H) ; assert (H = m) ; trivial ; destruct m.
+
+Hint Resolve le_n_O_eq sym_eq measuring_lemma.
+
 Lemma iterate_terminates_lemma : forall n x, measure x <= n -> measure (iterate_helper n x) = 0.
- induction n ; intros ; simpl.
- symmetry.
- apply (le_n_O_eq (measure x)) ; assumption.
- set (m := measure x).
- assert (measure x = m) ; trivial.
- destruct m.
- assumption.
- pose (measuring_lemma n x H).
- pose (IHn (f x) l).
- assumption.
+ induction n ; simpl ; [ auto | intros ; smart_destruct (measure x) ; auto ].
 Qed.
 
 Theorem iterate_terminates : forall x, measure (iterate x) = 0.
- intro.
- apply iterate_terminates_lemma.
- constructor.
+ intro ; apply iterate_terminates_lemma ; auto.
 Qed.
 
 End iteration.
+
+Check iterate_terminates.
